@@ -9,4 +9,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error("Erro: Chaves do Supabase não encontradas no ambiente!");
 }
 
+// Apenas para teste, remova depois!
+console.log("URL do Supabase configurada?", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)

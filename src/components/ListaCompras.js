@@ -1,51 +1,63 @@
 "use client";
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 export default function ListaCompras() {
-  const [itens, setItens] = useState([])
-  const [novoItem, setNovoItem] = useState('')
+  const [itens, setItens] = useState([]);
+  const [novoItem, setNovoItem] = useState('');
 
-  const buscarItens = async () => {
-    const { data } = await supabase.from('lista_compras').select('*').order('id', { ascending: false })
-    if (data) setItens(data)
+  useEffect(() => {
+    carregarItens();
+  }, []);
+
+  async function carregarItens() {
+    const { data } = await supabase.from('lista_compras').select('*').order('id', { ascending: false });
+    setItens(data || []);
   }
 
-  useEffect(() => { buscarItens() }, [])
-
-  const adicionarItem = async (e) => {
-    e.preventDefault()
-    if (!novoItem) return
-    await supabase.from('lista_compras').insert([{ item: novoItem, comprado: false }])
-    setNovoItem('')
-    buscarItens()
+  async function adicionarItem(e) {
+    e.preventDefault();
+    if (!novoItem) return;
+    await supabase.from('lista_compras').insert([{ item: novoItem, comprado: false }]);
+    setNovoItem('');
+    carregarItens();
   }
 
-  const alternar = async (id, status) => {
-    await supabase.from('lista_compras').update({ comprado: !status }).eq('id', id)
-    buscarItens()
+  async function alternarComprado(id, status) {
+    await supabase.from('lista_compras').update({ comprado: !status }).eq('id', id);
+    carregarItens();
   }
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-bold mb-4">🛒 Lista de Compras</h2>
-      <form onSubmit={adicionarItem} className="flex gap-2 mb-4">
+    <div className="p-4 max-w-md mx-auto">
+      <h2 className="text-2xl font-black text-black mb-6">🛒 Lista de Compras</h2>
+      
+      <form onSubmit={adicionarItem} className="flex gap-2 mb-8">
         <input 
-          className="flex-1 border p-2 rounded" 
-          value={novoItem} 
+          className="flex-1 border-2 border-gray-800 p-4 rounded-xl text-black font-bold placeholder-gray-500 bg-white"
+          placeholder="O que falta?"
+          value={novoItem}
           onChange={(e) => setNovoItem(e.target.value)}
-          placeholder="Ex: Leite"
         />
-        <button className="bg-green-500 text-white px-4 rounded">Add</button>
+        <button className="bg-emerald-600 text-white px-6 rounded-xl font-black text-xl">+</button>
       </form>
-      <ul className="space-y-2">
-        {itens.map(item => (
-          <li key={item.id} onClick={() => alternar(item.id, item.comprado)} className="flex items-center gap-2 cursor-pointer border-b pb-1">
-            <input type="checkbox" checked={item.comprado} readOnly />
-            <span className={item.comprado ? "line-through text-gray-400" : ""}>{item.item}</span>
-          </li>
+
+      <div className="space-y-3">
+        {itens.map((i) => (
+          <div 
+            key={i.id} 
+            onClick={() => alternarComprado(i.id, i.comprado)}
+            className={`p-5 rounded-2xl border-2 flex items-center justify-between transition-all ${
+              i.comprado ? 'bg-gray-100 border-gray-300' : 'bg-white border-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+            }`}
+          >
+            <span className={`text-lg font-black ${i.comprado ? 'text-gray-400 line-through' : 'text-black'}`}>
+              {i.item}
+            </span>
+            <div className={`w-7 h-7 rounded-full border-2 ${i.comprado ? 'bg-emerald-500 border-emerald-600' : 'border-black'}`}></div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
-  )
+  );
 }
