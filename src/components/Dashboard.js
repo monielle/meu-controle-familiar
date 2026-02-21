@@ -13,6 +13,22 @@ export default function Dashboard() {
       setStats({ compras: c || 0, tarefas: t || 0, prato: p?.prato_nome || 'Livre' });
     }
     carregar();
+  // Trecho importante dentro do useEffect do Dashboard.js
+async function carregarDados() {
+  const hojeIndice = new Date().getDay(); // Pega o número do dia atual (0-6)
+
+  const { data: cardapioHoje } = await supabase
+    .from('cardapio')
+    .select('prato_nome')
+    .eq('dia_semana', hojeIndice)
+    .single();
+
+  setStats(prev => ({
+    ...prev,
+    prato: cardapioHoje?.prato_nome || 'Não definido para hoje'
+  }));
+}
+  
   }, []);
 
   return (
